@@ -36,12 +36,6 @@ endif
 LOCAL_SHARED_LIBRARIES += libminuitwrp libc libstdc++ libminzip libaosprecovery
 LOCAL_MODULE := libguitwrp
 
-# Use this flag to create a build that simulates threaded actions like installing zips, backups, restores, and wipes for theme testing
-#TWRP_SIMULATE_ACTIONS := true
-ifeq ($(TWRP_SIMULATE_ACTIONS), true)
-LOCAL_CFLAGS += -D_SIMULATE_ACTIONS
-endif
-
 #TWRP_EVENT_LOGGING := true
 ifeq ($(TWRP_EVENT_LOGGING), true)
 LOCAL_CFLAGS += -D_EVENT_LOGGING
@@ -61,6 +55,12 @@ ifeq ($(TW_OEM_BUILD), true)
 endif
 ifeq ($(TW_DISABLE_TTF), true)
     LOCAL_CFLAGS += -DTW_DISABLE_TTF
+endif
+ifneq ($(TW_X_OFFSET),)
+  LOCAL_CFLAGS += -DTW_X_OFFSET=$(TW_X_OFFSET)
+endif
+ifneq ($(TW_Y_OFFSET),)
+  LOCAL_CFLAGS += -DTW_Y_OFFSET=$(TW_Y_OFFSET)
 endif
 
 ifeq ($(DEVICE_RESOLUTION),)
