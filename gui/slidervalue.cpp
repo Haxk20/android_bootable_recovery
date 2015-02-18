@@ -73,16 +73,8 @@ GUISliderValue::GUISliderValue(xml_node<>* node) : GUIObject(node)
 	child = node->first_node("font");
 	if (child)
 	{
-		attr = child->first_attribute("resource");
-		if (attr)
-			mFont = PageManager::FindResource(attr->value());
-
-		attr = child->first_attribute("color");
-		if (attr)
-		{
-			std::string color = attr->value();
-			ConvertStrToColor(color, &mTextColor);
-		}
+		mFont = LoadAttrFont(child, "resource");
+		mTextColor = LoadAttrColor(child, "color", mTextColor);
 	}
 
 	// Load the placement
@@ -103,17 +95,9 @@ GUISliderValue::GUISliderValue(xml_node<>* node) : GUIObject(node)
 	child = node->first_node("resource");
 	if (child)
 	{
-		attr = child->first_attribute("background");
-		if(attr)
-			mBackgroundImage = PageManager::FindResource(attr->value());
-
-		attr = child->first_attribute("handle");
-		if(attr)
-			mHandleImage = PageManager::FindResource(attr->value());
-
-		attr = child->first_attribute("handlehover");
-		if(attr)
-			mHandleHoverImage = PageManager::FindResource(attr->value());
+		mBackgroundImage = LoadAttrImage(child, "background");
+		mHandleImage = LoadAttrImage(child, "handle");
+		mHandleHoverImage = LoadAttrImage(child, "handlehover");
 	}
 
 	child = node->first_node("data");
@@ -173,14 +157,14 @@ GUISliderValue::GUISliderValue(xml_node<>* node) : GUIObject(node)
 		if (attr)
 		{
 			string parsevalue = gui_parse_text(attr->value());
-			mLineH = atoi(parsevalue.c_str());
+			mLineH = scale_theme_y(atoi(parsevalue.c_str()));
 		}
 
 		attr = child->first_attribute("linepadding");
 		if (attr)
 		{
 			string parsevalue = gui_parse_text(attr->value());
-			mPadding = atoi(parsevalue.c_str());
+			mPadding = scale_theme_x(atoi(parsevalue.c_str()));
 			mLinePadding = mPadding;
 		}
 
@@ -188,18 +172,18 @@ GUISliderValue::GUISliderValue(xml_node<>* node) : GUIObject(node)
 		if (attr)
 		{
 			string parsevalue = gui_parse_text(attr->value());
-			mSliderW = atoi(parsevalue.c_str());
+			mSliderW = scale_theme_x(atoi(parsevalue.c_str()));
 		}
 
 		attr = child->first_attribute("sliderh");
 		if (attr)
 		{
 			string parsevalue = gui_parse_text(attr->value());
-			mSliderH = atoi(parsevalue.c_str());
+			mSliderH = scale_theme_y(atoi(parsevalue.c_str()));
 		}
 	}
 
-	mFontHeight = gr_getMaxFontHeight(mFont ? mFont->GetResource() : NULL);
+	mFontHeight = mFont->GetHeight();
 
 	if(mShowCurr)
 	{
@@ -277,8 +261,8 @@ int GUISliderValue::SetRenderPos(int x, int y, int w, int h)
 
 	if(mBackgroundImage && mBackgroundImage->GetResource())
 	{
-		mLineW = gr_get_width(mBackgroundImage->GetResource());
-		mLineH = gr_get_height(mBackgroundImage->GetResource());
+		mLineW = mBackgroundImage->GetWidth();
+		mLineH = mBackgroundImage->GetHeight();
 	}
 	else
 		mLineW = mRenderW - (mLinePadding * 2);

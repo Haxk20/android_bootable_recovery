@@ -88,35 +88,21 @@ GUIInput::GUIInput(xml_node<>* node)
 	child = node->first_node("background");
 	if (child)
 	{
-		attr = child->first_attribute("resource");
-		if (attr)
-			mBackground = PageManager::FindResource(attr->value());
-		attr = child->first_attribute("color");
-		if (attr)
-		{
-			std::string color = attr->value();
-			ConvertStrToColor(color, &mBackgroundColor);
-		}
+		mBackground = LoadAttrImage(child, "resource");
+		mBackgroundColor = LoadAttrColor(child, "color", mBackgroundColor);
 	}
 	if (mBackground && mBackground->GetResource())
 	{
-		mBackgroundW = gr_get_width(mBackground->GetResource());
-		mBackgroundH = gr_get_height(mBackground->GetResource());
+		mBackgroundW = mBackground->GetWidth();
+		mBackgroundH = mBackground->GetHeight();
 	}
 
 	// Load the cursor color
 	child = node->first_node("cursor");
 	if (child)
 	{
-		attr = child->first_attribute("resource");
-		if (attr)
-			mCursor = PageManager::FindResource(attr->value());
-		attr = child->first_attribute("color");
-		if (attr)
-		{
-			std::string color = attr->value();
-			ConvertStrToColor(color, &mCursorColor);
-		}
+		mCursor = LoadAttrImage(child, "resource");
+		mCursorColor = LoadAttrColor(child, "color", mCursorColor);
 		attr = child->first_attribute("hasfocus");
 		if (attr)
 		{
@@ -127,20 +113,17 @@ GUIInput::GUIInput(xml_node<>* node)
 		if (attr)
 		{
 			std::string cwidth = gui_parse_text(attr->value());
-			CursorWidth = atoi(cwidth.c_str());
+			CursorWidth = scale_theme_x(atoi(cwidth.c_str()));
 		}
 	}
 	DrawCursor = HasInputFocus;
 
-	// Load the font, and possibly override the color
+	// Load the font
 	child = node->first_node("font");
 	if (child)
 	{
-		attr = child->first_attribute("resource");
-		if (attr) {
-			mFont = PageManager::FindResource(attr->value());
-			mFontHeight = gr_getMaxFontHeight(mFont ? mFont->GetResource() : NULL);
-		}
+		mFont = LoadAttrFont(child, "resource");
+		mFontHeight = mFont->GetHeight();
 	}
 
 	child = node->first_node("text");
@@ -213,10 +196,8 @@ GUIInput::GUIInput(xml_node<>* node)
 
 GUIInput::~GUIInput()
 {
-	if (mInputText)	 	delete mInputText;
-	if (mBackground)	delete mBackground;
-	if (mCursor)		delete mCursor;
-	if (mAction)		delete mAction;
+	delete mInputText;
+	delete mAction;
 }
 
 int GUIInput::HandleTextLocation(int x)
@@ -714,11 +695,7 @@ int GUIInput::NotifyKeyboard(int key)
 			if (mCursorLocation == -1) {
 				variableValue += key;
 			} else {
-				const char newchar = (char)key;
-				const char* a = &newchar;
-				string newstring = a;
-				newstring.resize(1);
-				variableValue.insert(mCursorLocation + skipChars, newstring);
+				variableValue.insert(mCursorLocation + skipChars, 1, key);
 				mCursorLocation++;
 			}
 			isLocalChange = true;
